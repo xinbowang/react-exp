@@ -9,23 +9,31 @@ export class RouteAuth extends React.Component<any, any>{
     const { pathname } = location;
     const isLogin = local.get('token') && local.get('token').token;
     console.log(pathname);
+    let targetRouterConfig: any = null;
 
     // 如果该路由不用进行权限校验，登录状态下登陆页除外
     // 因为登陆后，无法跳转到登陆页
     // 这部分代码，是为了在非登陆状态下，访问不需要权限校验的路由
-    const targetRouterConfig = config.find((v:any) => {
+    config.forEach((v:any) => {
       let resPath: any = {
         isAuth: v.isAuth
       };
       if (v.childRoutes) {
         let childPath = v.childRoutes.find((c:any) => c.path === pathname);
-        if (childPath.path) {
+        if (childPath && childPath.path) {
           childPath.isChild = true;
           resPath = Object.assign(resPath, childPath);
         }
       }
-      return resPath && resPath.path ? resPath : v.path === pathname;
+      if (resPath && resPath.path) {
+        targetRouterConfig = resPath;
+      }
+      if (v.path === pathname) {
+        targetRouterConfig = v;
+      }
+      // targetRouterConfig = resPath && resPath.path ? resPath : v.path === pathname;
     });
+    console.log(targetRouterConfig);
     if(targetRouterConfig && !targetRouterConfig.isAuth && !isLogin){
       document.title = targetRouterConfig.title || '欢迎使用打卡系统！';
       const { component, isChild } = targetRouterConfig;
